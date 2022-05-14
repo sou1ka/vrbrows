@@ -2,31 +2,27 @@ const nightmare = require('nightmare');
 const os = require('os');
 const fs = require('fs');
 const cli = require('cac')();
+const { version } = require('./package.json');
 
 let n = null;
 let conf = null;
 
-cli.option('--config <config>', 'Please specify the config file.');
-cli.option('-c <config>', 'Please specify the config file.');
-cli.option('--separator <separator>', 'Please specify the Separator. Default ":::"', {
+cli.option('-c, --config <config>', 'Specify the config file.');
+cli.option('-s, --separator <separator>', 'Specify the Separator.', {
 	default: ':::'
 });
-cli.option('-s <separator>', 'Please specify the Separator. Default ":::"', {
-	default: ':::'
-});
-cli.option('--display <show>', 'Select browser display.', {
-  default: false
-});
-cli.option('-d <show>', 'Select browser display.', {
+cli.option('-d, --display <display>', 'Select browser display.', {
   default: false
 });
 cli.help();
-cli.version('1.0');
+cli.version(version);
 const p = cli.parse();
 
 let confPath = p.options.config || p.options.c;
 let separator = p.options.separator || p.options.s;
 let isShow = p.options.display || p.options.d;
+
+if(p.options.h || p.options.help || p.options.v || p.options.version) { return; }
 
 if(isEmpty(confPath)) {
 	process.stderr.write('ERROR: --config or -c is required.');
@@ -36,16 +32,28 @@ if(isEmpty(confPath)) {
 try {
 	conf = fs.readFileSync(confPath);
 } catch(e) {
-	process.stderr.write('ERROR: Cannot read the specified file.');
+	process.stderr.write('ERROR: Cannot read the specified file. Exception [' + e + ']');
 	return;
 }
 
-n = new nightmare({
-	show: true,
-	switches: {
-		"ignore-certificate-errors": true
-	}
-});
+try {
+	isShow = JSON.parse(isShow);
+} catch(e) {
+	process.stderr.write('ERROR: -d, --display is not boolean.');
+	return;
+}
+
+try {
+	n = new nightmare({
+		show: isShow,
+		switches: {
+			"ignore-certificate-errors": true
+		}
+	});
+} catch(e) {
+	process.stderr.write('ERROR: Cannot run Nightmare. Exception [' + e + ']');
+	return;
+}
 
 (async function() {
 	let ret = [];
@@ -64,9 +72,15 @@ n = new nightmare({
 		n.halt();
 	}
 
-	process.stdout.write(JSON.stringify(ret));
+	process.stdout.write('SUCCESS: ' + (!isEmpty(ret) ? os.EOL + JSON.stringify(ret): ''));
 })();
 
 function isEmpty(o) {
-	return (o === undefined || o === null || o.length === 0 || Object.keys(o).length === 0);
+	return (
+		o === undefined ||
+		o === null ||
+		o.length === 0 ||
+		Object.keys(o).length === 0 ||
+		(Array.from(new Set(o)).length === 1 && (Array.from(new Set(o))[0] === null || Array.from(new Set(o))[0] === undefined))
+	);
 }
