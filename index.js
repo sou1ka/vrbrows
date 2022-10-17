@@ -1,6 +1,8 @@
 const nightmare = require('nightmare');
 const os = require('os');
 const fs = require('fs');
+const rp = require('request-promise');
+const path = require('path');
 const cli = require('cac')();
 const { version } = require('./package.json');
 
@@ -61,7 +63,14 @@ try {
 
 	try {
 		for(let key in comds) {
-			ret.push(await eval(String('n.' + String(comds[key]).trim()).trim()));
+			if(!String(comds[key]).trim().startsWith('download')) {
+				ret.push(await eval(String('n.' + String(comds[key]).trim()).trim()));
+			} else {
+				let dir = new Date().getTime();
+				for(let i = 0, cnt = ret[ret.length-1].length; i < cnt; i++) {
+					download(dir, ret[ret.length-1][i]);
+				}
+			}
 		}
 
 	} catch(e) {
@@ -83,4 +92,13 @@ function isEmpty(o) {
 		Object.keys(o).length === 0 ||
 		(Array.from(new Set(o)).length === 1 && (Array.from(new Set(o))[0] === null || Array.from(new Set(o))[0] === undefined))
 	);
+}
+
+function download(dir, url) {
+	let dl = './download/' + dir + '/';
+	try {
+		fs.promises.mkdir(dl, { recursive: true })
+	} catch(e) {}
+	const file = fs.createWriteStream(dl + path.basename(url));
+	rp(url).pipe(file);
 }

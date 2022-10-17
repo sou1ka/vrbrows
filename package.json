@@ -5,14 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-		"build": "nexe index.js --output vrbrows --target windows-x64-10.0.0",
-		"build-full": "nexe index.js --build --output vrbrows --target windows-x64-10.0.0"
+    "build": "nexe index.js --output vrbrows --target windows-x64-10.0.0",
+    "build-full": "nexe index.js --build --output vrbrows --target windows-x64-10.0.0"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cac": "^6.7.12",
     "fs": "^0.0.1-security",
-    "nightmare": "^3.0.2"
+    "nightmare": "^3.0.2",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6"
   }
 }
