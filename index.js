@@ -32,7 +32,7 @@ if(isEmpty(confPath)) {
 }
 
 try {
-	conf = fs.readFileSync(confPath);
+	conf = fs.readFileSync(confPath, 'utf8');
 } catch(e) {
 	process.stderr.write('ERROR: Cannot read the specified file. Exception [' + e + ']');
 	return;
@@ -95,6 +95,7 @@ function isEmpty(o) {
 }
 
 function download(dir, url) {
+	console.log(url+"\n");
 	let dl = './download/' + dir + '/';
 	try {
 		fs.promises.mkdir(dl, { recursive: true })
